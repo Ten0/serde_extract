@@ -12,15 +12,21 @@ fn struct_() {
 	#[derive(Serialize)]
 	struct Source<'a> {
 		a: &'a str,
-		b: u32,
+		b: &'a [usize],
+		c: u32,
 	}
 	#[derive(Debug, PartialEq, Deserialize)]
 	struct Extract {
-		b: u32,
+		c: u32,
 	}
 	assert_eq!(
-		extract::<Extract, Source>(&Source { a: "hello", b: 3 }).unwrap(),
-		Extract { b: 3 }
+		extract::<Extract, Source>(&Source {
+			a: "hello",
+			b: &[4, 5, 6],
+			c: 3,
+		})
+		.unwrap(),
+		Extract { c: 3 }
 	);
 }
 
