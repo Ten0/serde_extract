@@ -1,0 +1,13 @@
+[package]
+	author = "Thomas BESSOU <thomas.bessou@hotmail.fr>"
+	description = "Enables remapping two structs using the Serde framework"
+	edition = "2021"
+	name = "serde_extract"
+	version = "0.1.0"
+
+[dependencies]
+	serde = "1"
+	serde_serializer_quick_unsupported = "0.1"
+
+[dev-dependencies]
+	serde_derive = "1"
