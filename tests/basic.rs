@@ -26,7 +26,7 @@ fn struct_() {
 			c: 3,
 		})
 		.unwrap(),
-		Extract { c: 3 }
+		Extract { c: 3 },
 	);
 }
 
@@ -52,12 +52,12 @@ fn map() {
 		extract::<Extract, Source>(&Source {
 			a: "hello",
 			b: 3,
-			inner: SourceInner { c: "world" }
+			inner: SourceInner { c: "world" },
 		})
 		.unwrap(),
 		Extract {
 			b: 3,
-			c: "world".to_owned()
+			c: "world".to_owned(),
 		}
 	);
 }
@@ -96,14 +96,14 @@ fn large_depth() {
 			b: 3,
 			inner: SourceInner {
 				c: "world",
-				d: SourceInner2 { e: true }
+				d: SourceInner2 { e: true },
 			}
 		})
 		.unwrap(),
 		Extract {
 			b: 3,
 			c: "world".to_owned(),
-			d: ExtractInner { e: true }
+			d: ExtractInner { e: true },
 		}
 	);
 }
@@ -127,11 +127,11 @@ fn enum_() {
 	assert_eq!(
 		extract::<Extract, Source>(&Source {
 			a: "hello",
-			b: Enum::B("world".to_owned())
+			b: Enum::B("world".to_owned()),
 		})
 		.unwrap(),
 		Extract {
-			b: Enum::B("world".to_owned())
+			b: Enum::B("world".to_owned()),
 		}
 	);
 }
@@ -141,17 +141,28 @@ fn option() {
 	#[derive(Serialize)]
 	struct Source<'a> {
 		b: &'a str,
+		c: Option<Source2>,
+	}
+	#[derive(Serialize, Debug, PartialEq, Deserialize)]
+	struct Source2 {
+		d: usize,
 	}
 	#[derive(Debug, PartialEq, Deserialize)]
 	struct Extract {
 		a: Option<usize>,
-		b: String,
+		b: Option<String>,
+		c: Option<Source2>,
 	}
 	assert_eq!(
-		extract::<Extract, Source>(&Source { b: "hello" }).unwrap(),
+		extract::<Extract, Source>(&Source {
+			b: "hello",
+			c: Some(Source2 { d: 3 })
+		})
+		.unwrap(),
 		Extract {
 			a: None,
-			b: "hello".to_string()
+			b: Some("hello".to_string()),
+			c: Some(Source2 { d: 3 }),
 		}
 	)
 }
