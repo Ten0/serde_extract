@@ -66,12 +66,13 @@
 //! # Limitations
 //!
 //! - Sequences are not supported for now (although support could theoritically be added, algorithmic complexity of
-//!   generated code would be O(n²) because we would need to re-drive the [`Serializer`] for each element called for by
-//!   the [`Visitor`] through [`MapAccess`])
+//!   generated code would be O(n²) where n is the number of elements in the sequence because we would need to re-drive
+//!   the [`Serializer`] for each element called for by the [`Visitor`] through [`MapAccess`])
 //! - For the same reason, deserializing into `map`s is currently unsupported. Specifically, currently we can only
 //!   extract struct fields if the fields names are hinted by [`deserialize_struct`](Deserializer::deserialize_struct).
-//!   (This enables driving the [`Serializer`] only as many times as there are fields to extract. In theory again,
-//!   support could be added with O(n²) complexity where n is the number of input fields.)
+//!   (This enables driving the [`Serializer`] only as many times as there are fields to extract. In practice if both
+//!   sides are regular structs, the optimizer probably turns that into zero-cost extraction. In theory again, support
+//!   for deserializing into maps could be added with O(n²) complexity where n is the number of input fields.)
 
 mod general;
 mod map_access_from_serizable;
@@ -103,11 +104,17 @@ where
 /// Our serializer that can be built from a type that implements `Serialize`
 ///
 /// Note that while it implements `Deserializer<'de>` for any lifetime `'de`, in practice it will never provide
-/// you with borrowed stuff (because these don't exist on [`Serializer`])
-///
-/// This means that attempting to deserialize fields that don't implement [`DeserializeOwned`] will fail.
+/// you with borrowed values (because these don't exist on [`Serializer`]).
+/// This means that attempting to deserialize types that don't implement [`DeserializeOwned`] from this will most likely
+/// fail.
 pub struct DeserializerFromSerializable<'s, S: Serialize + ?Sized> {
 	serializable: &'s S,
+}
+
+impl<'s, S: Serialize + ?Sized> DeserializerFromSerializable<'s, S> {
+	pub fn new(serializable: &'s S) -> Self {
+		Self { serializable }
+	}
 }
 
 impl<'de, S: Serialize + ?Sized> Deserializer<'de> for DeserializerFromSerializable<'_, S> {
