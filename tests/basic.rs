@@ -135,3 +135,23 @@ fn enum_() {
 		}
 	);
 }
+
+#[test]
+fn option() {
+	#[derive(Serialize)]
+	struct Source<'a> {
+		b: &'a str,
+	}
+	#[derive(Debug, PartialEq, Deserialize)]
+	struct Extract {
+		a: Option<usize>,
+		b: String,
+	}
+	assert_eq!(
+		extract::<Extract, Source>(&Source { b: "hello" }).unwrap(),
+		Extract {
+			a: None,
+			b: "hello".to_string()
+		}
+	)
+}

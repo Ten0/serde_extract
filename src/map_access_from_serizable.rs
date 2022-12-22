@@ -43,6 +43,8 @@ impl<'de, 's, S: Serialize + ?Sized> MapAccess<'de> for ThisMapAccess<'s, S> {
 		})? {
 			ExtractFieldByNameState::NotSeen(seed) | ExtractFieldByNameState::ShouldTakeNext(seed) => {
 				// If it's an option this will `visit_none`
+				self.fields = &self.fields[1..];
+				self.start_idx = 0;
 				seed.deserialize(value::UnitDeserializer::new())
 			}
 			ExtractFieldByNameState::Seen(value) => {
@@ -66,46 +68,53 @@ impl<'de, 's, S: Serialize + ?Sized> MapAccess<'de> for ThisMapAccess<'s, S> {
 		}
 	}
 
-	fn next_entry_seed<K, V>(&mut self, kseed: K, vseed: V) -> Result<Option<(K::Value, V::Value)>, Self::Error>
+	fn next_entry_seed<K, V>(&mut self, kseed: K, mut vseed: V) -> Result<Option<(K::Value, V::Value)>, Self::Error>
 	where
 		K: DeserializeSeed<'de>,
 		V: DeserializeSeed<'de>,
 	{
-		Ok(match self.fields.first() {
-			Some(&field_name) => {
-				match self.serializable.serialize(ExtractFieldByNameSerializer {
-					key_to_find: field_name,
-					vseed,
-					start_idx: self.start_idx,
-				})? {
-					ExtractFieldByNameState::NotSeen(_) | ExtractFieldByNameState::ShouldTakeNext(_) => None,
-					ExtractFieldByNameState::Seen(value) => {
-						self.fields = &self.fields[1..];
-						self.start_idx = 0;
-						Some((
-							kseed.deserialize(value::BorrowedStrDeserializer::new(field_name))?,
+		Ok(loop {
+			break match self.fields.first() {
+				Some(&field_name) => {
+					match self.serializable.serialize(ExtractFieldByNameSerializer {
+						key_to_find: field_name,
+						vseed,
+						start_idx: self.start_idx,
+					})? {
+						ExtractFieldByNameState::NotSeen(seed) | ExtractFieldByNameState::ShouldTakeNext(seed) => {
+							vseed = seed;
+							self.fields = &self.fields[1..];
+							self.start_idx = 0;
+							continue;
+						}
+						ExtractFieldByNameState::Seen(value) => {
+							self.fields = &self.fields[1..];
+							self.start_idx = 0;
+							Some((
+								kseed.deserialize(value::BorrowedStrDeserializer::new(field_name))?,
+								value,
+							))
+						}
+						ExtractFieldByNameState::SeenAndMoreOfTheSameAreAvailable {
 							value,
-						))
-					}
-					ExtractFieldByNameState::SeenAndMoreOfTheSameAreAvailable {
-						value,
-						first_next_available,
-					} => {
-						self.start_idx = first_next_available;
-						Some((
-							kseed.deserialize(value::BorrowedStrDeserializer::new(field_name))?,
-							value,
-						))
-					}
-					ExtractFieldByNameState::Broken => {
-						return Err(Error::custom(
-							"Should not happen unless we exited with an error\
+							first_next_available,
+						} => {
+							self.start_idx = first_next_available;
+							Some((
+								kseed.deserialize(value::BorrowedStrDeserializer::new(field_name))?,
+								value,
+							))
+						}
+						ExtractFieldByNameState::Broken => {
+							return Err(Error::custom(
+								"Should not happen unless we exited with an error\
                             in which case we shouldn't reach this path",
-						))
+							))
+						}
 					}
 				}
-			}
-			None => None,
+				None => None,
+			};
 		})
 	}
 }

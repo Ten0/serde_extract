@@ -14,10 +14,10 @@ use {
 
 pub use serde::de::value::Error;
 
-pub fn extract<'de, T, S>(serializable: &S) -> Result<T, Error>
+pub fn extract<T, S>(serializable: &S) -> Result<T, Error>
 where
 	S: Serialize + ?Sized,
-	T: Deserialize<'de>,
+	T: DeserializeOwned,
 {
 	T::deserialize(DeserializerFromSerializable { serializable })
 }
