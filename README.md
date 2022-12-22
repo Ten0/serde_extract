@@ -10,7 +10,7 @@ implements `Serialize`.
 
 # Usage
 ## TL;DR
-```
+```rust
 #[derive(serde_derive::Serialize)]
 struct Source<'a> {
 	a: &'a str,
@@ -35,7 +35,7 @@ argument to our `make_paginated_request` function would be very un-ergonomic bec
 rarely used and it's nicer to specify it in the same struct as the rest of the query parameters, this is a good
 use-case for this crate.
 
-```
+```rust
 // This will be our original query
 #[derive(serde_derive::Serialize)]
 struct SomeSpecificRequest {
