@@ -74,18 +74,20 @@
 //!   sides are regular structs, the optimizer probably turns that into zero-cost extraction. In theory again, support
 //!   for deserializing into maps could be added with O(n²) complexity where n is the number of input fields.)
 
+#![no_std]
+
 mod general;
 mod map_access_from_serizable;
 mod newtype_variant;
 
 use {
+	core::marker::PhantomData,
 	serde::{
 		de::{Error as _, *},
 		forward_to_deserialize_any,
 		ser::*,
 	},
 	serde_serializer_quick_unsupported::serializer_unsupported,
-	std::marker::PhantomData,
 };
 
 pub use serde::de::value::Error;

@@ -7,7 +7,7 @@
 
 [dependencies]
 	serde = "1"
-	serde_serializer_quick_unsupported = "0.1"
+	serde_serializer_quick_unsupported = "0.1.2"
 
 [dev-dependencies]
 	serde_derive = "1"

@@ -184,7 +184,7 @@ impl<'de, S: DeserializeSeed<'de>> SerializeStruct for ExtractFieldByNameSeriali
 	{
 		if self.current_idx >= self.start_idx {
 			if key == self.key_to_find {
-				self.state = match std::mem::replace(&mut self.state, ExtractFieldByNameState::Broken) {
+				self.state = match core::mem::replace(&mut self.state, ExtractFieldByNameState::Broken) {
 					ExtractFieldByNameState::NotSeen(seed) => ExtractFieldByNameState::Seen(
 						seed.deserialize(DeserializerFromSerializable { serializable: value })?,
 					),
@@ -232,7 +232,7 @@ impl<'de, S: DeserializeSeed<'de>> SerializeMap for ExtractFieldByNameSerializeS
 			if key.serialize(StringComparisonSerializer {
 				check_if_equals: self.key_to_find,
 			})? {
-				self.state = match std::mem::replace(&mut self.state, ExtractFieldByNameState::Broken) {
+				self.state = match core::mem::replace(&mut self.state, ExtractFieldByNameState::Broken) {
 					ExtractFieldByNameState::NotSeen(seed) | ExtractFieldByNameState::ShouldTakeNext(seed) => {
 						ExtractFieldByNameState::ShouldTakeNext(seed)
 					}
@@ -261,7 +261,7 @@ impl<'de, S: DeserializeSeed<'de>> SerializeMap for ExtractFieldByNameSerializeS
 	where
 		T: Serialize,
 	{
-		self.state = match std::mem::replace(&mut self.state, ExtractFieldByNameState::Broken) {
+		self.state = match core::mem::replace(&mut self.state, ExtractFieldByNameState::Broken) {
 			ExtractFieldByNameState::ShouldTakeNext(seed) => {
 				ExtractFieldByNameState::Seen(seed.deserialize(DeserializerFromSerializable { serializable: value })?)
 			}
@@ -286,7 +286,7 @@ impl<'de, S: DeserializeSeed<'de>> SerializeMap for ExtractFieldByNameSerializeS
 			if key.serialize(StringComparisonSerializer {
 				check_if_equals: self.key_to_find,
 			})? {
-				self.state = match std::mem::replace(&mut self.state, ExtractFieldByNameState::Broken) {
+				self.state = match core::mem::replace(&mut self.state, ExtractFieldByNameState::Broken) {
 					ExtractFieldByNameState::NotSeen(seed) => ExtractFieldByNameState::Seen(
 						seed.deserialize(DeserializerFromSerializable { serializable: value })?,
 					),
